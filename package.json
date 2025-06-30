@@ -1,19 +1,20 @@
 {
-  "name": "n8n-nodes-<...>",
+  "name": "n8n-nodes-nasapics",
   "version": "0.1.0",
-  "description": "",
+  "type": "module",
+  "description": "n8n node to call NASA's APOD and Mars Rover Photo services.",
   "keywords": [
     "n8n-community-node-package"
   ],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://n8n.io",
   "author": {
-    "name": "",
-    "email": ""
+    "name": "Test",
+    "email": "test@example.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/<...>/n8n-nodes-<...>.git"
+    "url": "git+https://github.com/Arexxa/n8n-custom-node.git"
   },
   "engines": {
     "node": ">=20.15"
@@ -21,7 +22,9 @@
   "main": "index.js",
   "scripts": {
     "build": "npx rimraf dist && tsc && gulp build:icons",
-    "dev": "tsc --watch",
+    "dev": "concurrently \"npm run watch\" \"npm run start:dev\"",
+    "watch": "tsc --watch --preserveWatchOutput",
+    "start:dev": "cross-env NODE_ENV=development n8n",
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
     "lintfix": "eslint nodes credentials package.json --fix",
@@ -33,16 +36,19 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/ExampleCredentialsApi.credentials.js",
-      "dist/credentials/HttpBinApi.credentials.js"
+      "dist/credentials/NasaPicsApi.credentials.js",
+      "dist/credentials/OAuth2Api.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/ExampleNode/ExampleNode.node.js",
-      "dist/nodes/HttpBin/HttpBin.node.js"
+      "dist/nodes/NasaPics/NasaPics.node.js",
+      "dist/nodes/OAuth2/OAuth2.node.js"
     ]
   },
   "devDependencies": {
+    "@types/node": "^24.0.7",
     "@typescript-eslint/parser": "~8.32.0",
+    "concurrently": "^9.2.0",
+    "cross-env": "^7.0.3",
     "eslint": "^8.57.0",
     "eslint-plugin-n8n-nodes-base": "^1.16.3",
     "gulp": "^5.0.0",

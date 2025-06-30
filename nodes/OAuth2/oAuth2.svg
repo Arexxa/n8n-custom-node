@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>OAuth2 Icon</title>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect fill="#FF5722" x="0" y="0" width="24" height="24" rx="4"></rect>
+        <path d="M12,6 C8.686,6 6,8.686 6,12 C6,15.314 8.686,18 12,18 C15.314,18 18,15.314 18,12 C18,8.686 15.314,6 12,6 Z M12,16.8 C9.349,16.8 7.2,14.651 7.2,12 C7.2,9.349 9.349,7.2 12,7.2 C14.651,7.2 16.8,9.349 16.8,12 C16.8,14.651 14.651,16.8 12,16.8 Z" fill="#FFFFFF"></path>
+        <path d="M12,8.4 C10.011,8.4 8.4,10.011 8.4,12 C8.4,13.989 10.011,15.6 12,15.6 C13.989,15.6 15.6,13.989 15.6,12 C15.6,10.011 13.989,8.4 12,8.4 Z" fill="#FFFFFF"></path>
+    </g>
+</svg>
