@@ -1,0 +1,91 @@
+{
+    "displayName": "ShopLink Customer",
+    "name": "customer",
+    "group": ["shoplink"],
+    "version": 1,
+    "description": "Interact with ShopLink Customer API",
+    "defaults": {
+        "name": "ShopLink Customer"
+    },
+    "inputs": ["main"],
+    "outputs": ["main"],
+    "credentials": [
+        {
+            "name": "customerApi",
+            "required": true
+        }
+    ],
+    "requestDefaults": {
+        "baseURL": "https://loyaltycrmapidev.shoplink.hk/api/crm",
+        "headers": {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+    },
+    "properties": [
+        {
+            "displayName": "Resource",
+            "name": "resource",
+            "type": "options",
+            "noDataExpression": true,
+            "options": [
+                {
+                    "name": "Customer",
+                    "value": "customer"
+                }
+            ],
+            "default": "customer"
+        },
+        {
+            "displayName": "Operation",
+            "name": "operation",
+            "type": "options",
+            "noDataExpression": true,
+            "displayOptions": {
+                "show": {
+                    "resource": ["customer"]
+                }
+            },
+            "options": [
+                {
+                    "name": "Get",
+                    "value": "get",
+                    "action": "Get a customer",
+                    "description": "Get a customer by ID",
+                    "routing": {
+                        "request": {
+                            "method": "GET",
+                            "url": "=/appcustomers/{{$parameter.customerId}}"
+                        }
+                    }
+                },
+                {
+                    "name": "Get All",
+                    "value": "getAll",
+                    "action": "Get all customers",
+                    "description": "Get all customers",
+                    "routing": {
+                        "request": {
+                            "method": "GET",
+                            "url": "/appcustomers/demo"
+                        }
+                    }
+                }
+            ],
+            "default": "get"
+        },
+        {
+            "displayName": "Customer ID",
+            "name": "customerId",
+            "type": "string",
+            "default": "",
+            "description": "The ID of the customer to retrieve",
+            "required": true,
+            "displayOptions": {
+                "show": {
+                    "operation": ["get"]
+                }
+            }
+        }
+    ]
+}

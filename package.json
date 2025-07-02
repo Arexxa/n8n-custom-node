@@ -1,8 +1,8 @@
 {
-  "name": "n8n-nodes-nasapics",
+  "name": "n8n-nodes-custom",
   "version": "0.1.0",
   "type": "module",
-  "description": "n8n node to call NASA's APOD and Mars Rover Photo services.",
+  "description": "n8n node to call ShopLink Customer API.",
   "keywords": [
     "n8n-community-node-package"
   ],
@@ -37,11 +37,13 @@
     "n8nNodesApiVersion": 1,
     "credentials": [
       "dist/credentials/NasaPicsApi.credentials.js",
-      "dist/credentials/OAuth2Api.credentials.js"
+      "dist/credentials/OAuth2Api.credentials.js",
+      "dist/credentials/CustomerApi.credentials.js"
     ],
     "nodes": [
       "dist/nodes/NasaPics/NasaPics.node.js",
-      "dist/nodes/OAuth2/OAuth2.node.js"
+      "dist/nodes/OAuth2/OAuth2.node.js",
+      "dist/nodes/Customer/Customer.node.js"
     ]
   },
   "devDependencies": {
