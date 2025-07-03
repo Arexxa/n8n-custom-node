@@ -5,11 +5,10 @@ import {
     NodeConnectionType,
     IDataObject,
     INodeExecutionData,
+    NodeOperationError,
 } from 'n8n-workflow';
 
-export class Customer implements INodeType {
-    constructor() {}
-
+class Customer implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'ShopLink Customer',
         name: 'customer',
@@ -26,7 +25,7 @@ export class Customer implements INodeType {
         credentials: [
             {
                 name: 'customerApi',
-                required: true,
+                required: false,
             },
         ],
         requestDefaults: {
@@ -69,7 +68,7 @@ export class Customer implements INodeType {
                         routing: {
                             request: {
                                 method: 'GET',
-                                url: '=/appcustomers/{{$parameter.customerId}}',
+                                url: '=/appcustomer/demo/{{$parameter.customerId}}',
                             },
                         },
                     },
@@ -116,25 +115,35 @@ export class Customer implements INodeType {
                 const resource = this.getNodeParameter('resource', i) as string;
 
                 if (resource === 'customer') {
-                    // Get credentials
+                    // Get credentials (optional)
                     const credentials = await this.getCredentials('customerApi');
+                    
+                    // Get OAuth token from previous node if available
+                    const oauthToken = items[i].json?.access_token as string | undefined;
 
-                    // Set up request options with authentication
+                    // Set up request options
                     const requestOptions: any = {
                         method: 'GET',
                         headers: {},
                         json: true,
+                        baseURL: 'https://loyaltycrmapidev.shoplink.hk/api/crm'
                     };
 
-                    // Add API key to headers if provided
-                    if (credentials?.apiKey) {
+                    // Add authentication to headers
+                    if (oauthToken) {
+                        // Use OAuth token from previous node
+                        requestOptions.headers['Authorization'] = `Bearer ${oauthToken}`;
+                    } else if (credentials?.apiKey) {
+                        // Fall back to API key if no OAuth token
                         requestOptions.headers['Authorization'] = `Bearer ${credentials.apiKey}`;
+                    } else {
+                        throw new NodeOperationError(this.getNode(), 'No authentication method provided. Please either connect an OAuth2 Provider node or provide API credentials.');
                     }
 
                     // Handle different operations
                     if (operation === 'get') {
                         const customerId = this.getNodeParameter('customerId', i) as string;
-                        requestOptions.uri = `/appcustomers/${customerId}`;
+                        requestOptions.uri = `/appcustomer/demo/${customerId}`;
                         responseData = await this.helpers.request.call(this, requestOptions);
                     } else if (operation === 'getAll') {
                         requestOptions.uri = '/appcustomers/demo';
@@ -161,4 +170,5 @@ export class Customer implements INodeType {
     }
 }
 
-export const CustomerNode = new Customer();
+// Export the class in the format n8n expects
+module.exports = { Customer };

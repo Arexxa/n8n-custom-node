@@ -1,5 +1,5 @@
-import path from 'path';
-import gulp from 'gulp';
+const path = require('path');
+const gulp = require('gulp');
 const { task, src, dest } = gulp;
 
 task('build:icons', copyIcons);

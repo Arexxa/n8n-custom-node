@@ -1,20 +1,20 @@
 // Import nodes
-import { NasaPicsNode } from './dist/nodes/NasaPics/NasaPics.node.js';
-import { OAuth2Node } from './dist/nodes/OAuth2/OAuth2.node.js';
-import { CustomerNode } from './dist/nodes/Customer/Customer.node.js';
+const NasaPicsNode = require('./dist/nodes/NasaPics/NasaPics.node.js');
+const OAuth2ProviderNode = require('./dist/nodes/OAuth2/OAuth2Provider.node.js');
+const CustomerNode = require('./dist/nodes/Customer/Customer.node.js');
 
 // Import credentials
-import { OAuth2CustomApi } from './dist/credentials/OAuth2Api.credentials.js';
-import { CustomerApi } from './dist/credentials/CustomerApi.credentials.js';
+const OAuth2ProviderApiCredentials = require('./dist/credentials/OAuth2ProviderApi.credentials.js');
+const CustomerApi = require('./dist/credentials/CustomerApi.credentials.js');
 
-export default {
+module.exports = {
     nodes: [
         NasaPicsNode,
-        OAuth2Node,
+        OAuth2ProviderNode,
         CustomerNode,
     ],
     credentials: [
-        OAuth2CustomApi,
+        OAuth2ProviderApiCredentials,
         CustomerApi,
     ],
 };
