@@ -36,13 +36,9 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/NasaPicsApi.credentials.js",
-      "dist/credentials/OAuth2Api.credentials.js",
-      "dist/credentials/CustomerApi.credentials.js"
+      "dist/credentials/CustomerApiKey.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/NasaPics/NasaPics.node.js",
-      "dist/nodes/OAuth2/OAuth2.node.js",
       "dist/nodes/Customer/Customer.node.js"
     ]
   },
@@ -67,6 +63,8 @@
   },
   "dependencies": {
     "@types/uuid": "^10.0.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "n8n-core": "^1.29.3",
+    "n8n-workflow": "^1.29.3"
   }
 }

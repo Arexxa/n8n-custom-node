@@ -5,7 +5,6 @@ import {
     NodeConnectionType,
     IDataObject,
     INodeExecutionData,
-    NodeOperationError,
 } from 'n8n-workflow';
 
 class Customer implements INodeType {
@@ -24,8 +23,8 @@ class Customer implements INodeType {
         outputs: [NodeConnectionType.Main],
         credentials: [
             {
-                name: 'customerApi',
-                required: false,
+                name: 'customerApiKey',
+                required: true,
             },
         ],
         requestDefaults: {
@@ -36,6 +35,19 @@ class Customer implements INodeType {
             },
         },
         properties: [
+            {
+                displayName: 'API Key',
+                name: 'apiKey',
+                type: 'string',
+                required: true,
+                default: '',
+                description: 'The API key to authenticate with the node',
+                displayOptions: {
+                    show: {
+                        resource: ['customer'],
+                    },
+                },
+            },
             {
                 displayName: 'Resource',
                 name: 'resource',
@@ -115,39 +127,85 @@ class Customer implements INodeType {
                 const resource = this.getNodeParameter('resource', i) as string;
 
                 if (resource === 'customer') {
-                    // Get credentials (optional)
-                    const credentials = await this.getCredentials('customerApi');
+                    // Get credentials
+                    const credentials = await this.getCredentials('customerApiKey');
+                    const baseUrl = credentials.baseUrl || 'https://loyaltycrmapidev.shoplink.hk/api/crm';
+                    const expectedApiKey = credentials.apiKey as string;
+                    const apiKeyValidation = (credentials.apiKeyValidation as 'exact' | 'startsWith' | 'contains') || 'exact';
                     
-                    // Get OAuth token from previous node if available
-                    const oauthToken = items[i].json?.access_token as string | undefined;
-
+                    // Get the API key from the request headers or query parameters
+                    const requestApiKey = this.getNodeParameter('apiKey', i, '') as string;
+                    
+                    // Validate the API key
+                    let isValid = false;
+                    
+                    switch (apiKeyValidation) {
+                        case 'exact':
+                            isValid = requestApiKey === expectedApiKey;
+                            break;
+                            
+                        case 'startsWith':
+                            isValid = requestApiKey.startsWith(expectedApiKey);
+                            break;
+                            
+                        case 'contains':
+                            isValid = requestApiKey.includes(expectedApiKey);
+                            break;
+                    }
+                    
+                    if (!isValid) {
+                        throw new Error('Invalid API key');
+                    }
+                    
+                    // Log the validation (without exposing the actual keys)
+                    this.logger.debug(`API Key validation: ${isValid ? 'SUCCESS' : 'FAILED'}`);
+                    
                     // Set up request options
                     const requestOptions: any = {
                         method: 'GET',
-                        headers: {},
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
                         json: true,
-                        baseURL: 'https://loyaltycrmapidev.shoplink.hk/api/crm'
+                        baseURL: baseUrl,
+                        validateStatus: (status: number) => {
+                            this.logger.debug(`Request status: ${status}`);
+                            return true; // Always resolve the promise to handle errors manually
+                        }
                     };
 
-                    // Add authentication to headers
-                    if (oauthToken) {
-                        // Use OAuth token from previous node
-                        requestOptions.headers['Authorization'] = `Bearer ${oauthToken}`;
-                    } else if (credentials?.apiKey) {
-                        // Fall back to API key if no OAuth token
-                        requestOptions.headers['Authorization'] = `Bearer ${credentials.apiKey}`;
-                    } else {
-                        throw new NodeOperationError(this.getNode(), 'No authentication method provided. Please either connect an OAuth2 Provider node or provide API credentials.');
-                    }
-
-                    // Handle different operations
-                    if (operation === 'get') {
-                        const customerId = this.getNodeParameter('customerId', i) as string;
-                        requestOptions.uri = `/appcustomer/demo/${customerId}`;
-                        responseData = await this.helpers.request.call(this, requestOptions);
-                    } else if (operation === 'getAll') {
-                        requestOptions.uri = '/appcustomers/demo';
-                        responseData = await this.helpers.request.call(this, requestOptions);
+                    try {
+                        // Handle different operations
+                        if (operation === 'get') {
+                            const customerId = this.getNodeParameter('customerId', i) as string;
+                            requestOptions.uri = `/appcustomer/demo/${customerId}`;
+                            this.logger.debug(`Making GET request to: ${requestOptions.uri}`);
+                            
+                            const response = await this.helpers.request.call(this, requestOptions);
+                            this.logger.debug('Response received', { statusCode: response.statusCode });
+                            
+                            if (response.statusCode === 401) {
+                                throw new Error('Authentication failed. Please check your API key and try again.');
+                            }
+                            
+                            responseData = response.body || response;
+                        } else if (operation === 'getAll') {
+                            requestOptions.uri = '/appcustomers/demo';
+                            this.logger.debug(`Making GET request to: ${requestOptions.uri}`);
+                            
+                            const response = await this.helpers.request.call(this, requestOptions);
+                            this.logger.debug('Response received', { statusCode: response.statusCode });
+                            
+                            if (response.statusCode === 401) {
+                                throw new Error('Authentication failed. Please check your API key and try again.');
+                            }
+                            
+                            responseData = response.body || response;
+                        }
+                    } catch (error) {
+                        this.logger.error('Request failed', { error });
+                        throw error;
                     }
 
                     // Process response
