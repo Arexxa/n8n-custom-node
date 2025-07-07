@@ -2,7 +2,6 @@ import {
     IExecuteFunctions,
     INodeType,
     INodeTypeDescription,
-    NodeConnectionType,
     IDataObject,
     INodeExecutionData,
 } from 'n8n-workflow';
@@ -12,15 +11,15 @@ class Customer implements INodeType {
         displayName: 'ShopLink Customer',
         name: 'customer',
         icon: 'file:customer.svg',
-        group: ['shoplink'],
+        group: ['transform'],
         version: 1,
         subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
         description: 'Interact with ShopLink Customer API',
         defaults: {
             name: 'ShopLink Customer',
         },
-        inputs: [NodeConnectionType.Main],
-        outputs: [NodeConnectionType.Main],
+        inputs: ['main'],
+        outputs: ['main'],
         credentials: [
             {
                 name: 'customerApiKey',

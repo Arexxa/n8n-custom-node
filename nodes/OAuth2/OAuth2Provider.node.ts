@@ -3,8 +3,7 @@ import {
     INodeTypeDescription, 
     IExecuteFunctions, 
     INodeExecutionData, 
-    NodeOperationError, 
-    NodeConnectionType 
+    NodeOperationError
 } from 'n8n-workflow';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -30,15 +29,15 @@ class OAuth2Provider implements INodeType {
         displayName: 'OAuth2 Provider',
         name: 'oAuth2Provider',
         icon: 'file:oAuth2.svg',
-        group: ['auth'],
+        group: ['transform'],
         version: 1,
         subtitle: '={{$parameter["operation"]}}',
         description: 'OAuth2 Provider for API Authentication',
         defaults: {
             name: 'OAuth2 Provider',
         },
-        inputs: [NodeConnectionType.Main],
-        outputs: [NodeConnectionType.Main],
+        inputs: ['main'],
+        outputs: ['main'],
         credentials: [
             {
                 name: 'oAuth2ProviderApi',
