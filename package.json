@@ -36,7 +36,8 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/CustomerApiKey.credentials.js"
+      "dist/credentials/CustomerApiKey.credentials.js",
+      "dist/credentials/CustomerOAuth2.credentials.js"
     ],
     "nodes": [
       "dist/nodes/Customer/Customer.node.js"
@@ -47,6 +48,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/lodash": "^4.17.20",
     "@types/node": "^24.0.7",
+    "@types/node-fetch": "^2.6.12",
     "@types/oauth2-server": "^3.0.18",
     "@types/request": "^2.48.12",
     "@types/tough-cookie": "^4.0.5",
@@ -63,7 +65,12 @@
     "n8n-workflow": "*"
   },
   "dependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/dotenv": "^6.1.1",
     "@types/uuid": "^10.0.0",
+    "axios": "^1.10.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.0.1",
     "express": "^5.1.0",
     "n8n-core": "^1.29.3",
     "n8n-workflow": "*",

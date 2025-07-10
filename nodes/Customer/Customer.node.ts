@@ -1,57 +1,38 @@
+// nodes/Customer/Customer.node.ts
 import {
+    IDataObject,
     IExecuteFunctions,
+    INodeExecutionData,
     INodeType,
     INodeTypeDescription,
-    IDataObject,
-    INodeExecutionData,
 } from 'n8n-workflow';
+import { apiRequest } from '../GenericFunctions';
 
-class Customer implements INodeType {
+export class Customer implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'ShopLink Customer',
         name: 'customer',
         icon: 'file:customer.svg',
-        group: ['transform'],
+        group: ['output'],
         version: 1,
-        subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-        description: 'Interact with ShopLink Customer API',
+        description: 'Interact with Customer API',
         defaults: {
-            name: 'ShopLink Customer',
+            name: 'Customer',
+            color: '#1A82e2',
         },
         inputs: ['main'],
         outputs: ['main'],
         credentials: [
             {
-                name: 'customerApiKey',
+                name: 'customerOAuth2Api',
                 required: true,
             },
         ],
-        requestDefaults: {
-            baseURL: 'https://loyaltycrmapidev.shoplink.hk/api/crm',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-        },
         properties: [
-            {
-                displayName: 'API Key',
-                name: 'apiKey',
-                type: 'string',
-                required: true,
-                default: '',
-                description: 'The API key to authenticate with the node',
-                displayOptions: {
-                    show: {
-                        resource: ['customer'],
-                    },
-                },
-            },
             {
                 displayName: 'Resource',
                 name: 'resource',
                 type: 'options',
-                noDataExpression: true,
                 options: [
                     {
                         name: 'Customer',
@@ -59,12 +40,12 @@ class Customer implements INodeType {
                     },
                 ],
                 default: 'customer',
+                description: 'The resource to operate on',
             },
             {
                 displayName: 'Operation',
                 name: 'operation',
                 type: 'options',
-                noDataExpression: true,
                 displayOptions: {
                     show: {
                         resource: ['customer'],
@@ -74,42 +55,32 @@ class Customer implements INodeType {
                     {
                         name: 'Get',
                         value: 'get',
-                        action: 'Get a customer',
                         description: 'Get a customer by ID',
-                        routing: {
-                            request: {
-                                method: 'GET',
-                                url: '=/appcustomer/demo/{{$parameter.customerId}}',
-                            },
-                        },
+                        action: 'Get a customer',
                     },
                     {
                         name: 'Get All',
                         value: 'getAll',
-                        action: 'Get all customers',
                         description: 'Get all customers',
-                        routing: {
-                            request: {
-                                method: 'GET',
-                                url: '/appcustomers/demo',
-                            },
-                        },
+                        action: 'Get all customers',
                     },
                 ],
-                default: 'get',
+                default: 'getAll',
+                description: 'The operation to perform',
             },
             {
                 displayName: 'Customer ID',
                 name: 'customerId',
                 type: 'string',
-                default: '',
-                description: 'The ID of the customer to retrieve',
                 required: true,
                 displayOptions: {
                     show: {
+                        resource: ['customer'],
                         operation: ['get'],
                     },
                 },
+                default: '',
+                description: 'The ID of the customer to retrieve',
             },
         ],
     };
@@ -117,115 +88,73 @@ class Customer implements INodeType {
     async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
         const items = this.getInputData();
         const returnData: IDataObject[] = [];
-        const length = items.length;
-        let responseData;
+        const resource = this.getNodeParameter('resource', 0) as string;
+        const operation = this.getNodeParameter('operation', 0) as string;
+        let responseData: any;
 
-        for (let i = 0; i < length; i++) {
+        console.log(`Executing ${resource}.${operation}`);
+
+        for (let i = 0; i < items.length; i++) {
             try {
-                const operation = this.getNodeParameter('operation', i) as string;
-                const resource = this.getNodeParameter('resource', i) as string;
-
                 if (resource === 'customer') {
-                    // Get credentials
-                    const credentials = await this.getCredentials('customerApiKey');
-                    const baseUrl = credentials.baseUrl || 'https://loyaltycrmapidev.shoplink.hk/api/crm';
-                    const expectedApiKey = credentials.apiKey as string;
-                    const apiKeyValidation = (credentials.apiKeyValidation as 'exact' | 'startsWith' | 'contains') || 'exact';
-                    
-                    // Get the API key from the request headers or query parameters
-                    const requestApiKey = this.getNodeParameter('apiKey', i, '') as string;
-                    
-                    // Validate the API key
-                    let isValid = false;
-                    
-                    switch (apiKeyValidation) {
-                        case 'exact':
-                            isValid = requestApiKey === expectedApiKey;
-                            break;
-                            
-                        case 'startsWith':
-                            isValid = requestApiKey.startsWith(expectedApiKey);
-                            break;
-                            
-                        case 'contains':
-                            isValid = requestApiKey.includes(expectedApiKey);
-                            break;
-                    }
-                    
-                    if (!isValid) {
-                        throw new Error('Invalid API key');
-                    }
-                    
-                    // Log the validation (without exposing the actual keys)
-                    this.logger.debug(`API Key validation: ${isValid ? 'SUCCESS' : 'FAILED'}`);
-                    
-                    // Set up request options
-                    const requestOptions: any = {
-                        method: 'GET',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                        },
-                        json: true,
-                        baseURL: baseUrl,
-                        validateStatus: (status: number) => {
-                            this.logger.debug(`Request status: ${status}`);
-                            return true; // Always resolve the promise to handle errors manually
+                    if (operation === 'getAll') {
+                        console.log('Fetching all customers...');
+                        responseData = await apiRequest.call(this, 'GET', '/crm/appcustomers/demo');
+                        
+                        // Handle different response formats
+                        if (responseData && responseData.data && Array.isArray(responseData.data)) {
+                            // If response has a data array
+                            returnData.push(...responseData.data);
+                        } else if (Array.isArray(responseData)) {
+                            // If response is directly an array
+                            returnData.push(...responseData);
+                        } else if (responseData && typeof responseData === 'object') {
+                            // If response is a single object
+                            returnData.push(responseData);
+                        } else {
+                            console.warn('Unexpected response format:', responseData);
+                            returnData.push({ warning: 'Unexpected response format', data: responseData });
                         }
-                    };
-
-                    try {
-                        // Handle different operations
-                        if (operation === 'get') {
-                            const customerId = this.getNodeParameter('customerId', i) as string;
-                            requestOptions.uri = `/appcustomer/demo/${customerId}`;
-                            this.logger.debug(`Making GET request to: ${requestOptions.uri}`);
-                            
-                            const response = await this.helpers.request.call(this, requestOptions);
-                            this.logger.debug('Response received', { statusCode: response.statusCode });
-                            
-                            if (response.statusCode === 401) {
-                                throw new Error('Authentication failed. Please check your API key and try again.');
-                            }
-                            
-                            responseData = response.body || response;
-                        } else if (operation === 'getAll') {
-                            requestOptions.uri = '/appcustomers/demo';
-                            this.logger.debug(`Making GET request to: ${requestOptions.uri}`);
-                            
-                            const response = await this.helpers.request.call(this, requestOptions);
-                            this.logger.debug('Response received', { statusCode: response.statusCode });
-                            
-                            if (response.statusCode === 401) {
-                                throw new Error('Authentication failed. Please check your API key and try again.');
-                            }
-                            
-                            responseData = response.body || response;
+                    } else if (operation === 'get') {
+                        const customerId = this.getNodeParameter('customerId', i) as string;
+                        console.log(`Fetching customer with ID: ${customerId}`);
+                        responseData = await apiRequest.call(this, 'GET', `/crm/appcustomer/demo/${customerId}`);
+                        
+                        // Handle the response data
+                        if (responseData && responseData.data) {
+                            returnData.push(responseData.data);
+                        } else if (responseData) {
+                            returnData.push(responseData);
+                        } else {
+                            returnData.push({ error: 'No data received' });
                         }
-                    } catch (error) {
-                        this.logger.error('Request failed', { error });
-                        throw error;
                     }
-
-                    // Process response
-                    if (Array.isArray(responseData)) {
-                        returnData.push(...responseData);
-                    } else if (responseData !== undefined) {
-                        returnData.push(responseData);
-                    }
+                } else {
+                    throw new Error(`Operation '${operation}' is not supported.`);
                 }
-            } catch (error) {
+            } catch (error: any) {
+                console.error(`Error in item ${i + 1}:`, error);
                 if (this.continueOnFail()) {
-                    returnData.push({ error: error.message });
+                    returnData.push({ 
+                        error: error.message,
+                        stack: error.stack,
+                        response: error.response?.data || 'No response data'
+                    });
                     continue;
                 }
                 throw error;
             }
         }
 
-        return [this.helpers.returnJsonArray(returnData)];
+        // Map data to n8n data structure
+        const executionData: INodeExecutionData[] = returnData.map((item: IDataObject) => ({
+            json: item,
+            binary: {},
+            pairedItem: {
+                item: 0,
+            },
+        }));
+
+        return [executionData];
     }
 }
-
-// Export the class in the format n8n expects
-module.exports = { Customer };

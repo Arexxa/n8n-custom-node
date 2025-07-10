@@ -3,6 +3,7 @@ import {
     NodePropertyTypes,
 } from 'n8n-workflow';
 
+// This is the exact format n8n expects
 export class CustomerApiKey implements ICredentialType {
     name = 'customerApiKey';
     displayName = 'Customer API Key';
@@ -53,3 +54,4 @@ export class CustomerApiKey implements ICredentialType {
         },
     ];
 }
+

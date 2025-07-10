@@ -1,8 +1,18 @@
+# Dependencies
 node_modules
+
+# Environment variables
+.env
+
+# Build output
+dist
+
+# Logs
+npm-debug.log*
+yarn.lock
+
+# Editor and system files
 .DS_Store
 .tmp
 tmp
-dist
-npm-debug.log*
-yarn.lock
 .vscode/launch.json
